@@ -5,7 +5,10 @@ import (
 	"encoding/pem"
 )
 
-func LoadP8CertByByte(str []byte) (interface{}, error) {
-	block, _ := pem.Decode(str)
+func ParsePrivateKey(b []byte) (interface{}, error) {
+	block, _ := pem.Decode(b)
+	if block == nil {
+		return nil, ErrNoPemBlockFound
+	}
 	return x509.ParsePKCS8PrivateKey(block.Bytes)
 }

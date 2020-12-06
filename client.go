@@ -1,20 +1,21 @@
 package applesignin
 
 import (
-	"bytes"
-	"encoding/json"
+	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 )
 
 const (
-	DefaultURL       = "https://appleid.apple.com/auth/token"
-	DefaultAudience  = "https://appleid.apple.com"
-	DefaultUserAgent = "apple-signin-client-go/1.0"
+	baseURL   = "https://appleid.apple.com/auth/token"
+	audience  = "https://appleid.apple.com"
+	userAgent = "apple-signin-client-go/1.0"
 )
 
 type Client struct {
@@ -27,36 +28,44 @@ type Client struct {
 
 	userAgent string
 	baseURL   string
-	http      *http.Client
+	http      http.Client
 }
 
-func New(tid, cid, kid string, opts ...func(c *Client)) *Client {
-	c := &Client{
-		audience:    DefaultAudience,
+func New(tid, cid, kid string, key interface{}) Client {
+	return Client{
+		audience:    audience,
 		teamID:      tid,
 		clientID:    cid,
 		keyID:       kid,
-		keyData:     nil,
+		keyData:     key,
 		redirectURL: "",
 
-		userAgent: DefaultUserAgent,
-		baseURL:   DefaultURL,
-		http:      &http.Client{Transport: http.DefaultTransport},
+		userAgent: userAgent,
+		baseURL:   baseURL,
+		http:      http.Client{Transport: http.DefaultTransport},
 	}
+}
 
-	for _, setOpt := range opts {
-		setOpt(c)
-	}
+func (c Client) WithBaseURL(u string) Client {
+	c.baseURL = u
+	return c
+}
 
+func (c Client) WithHTTPTimeout(t time.Duration) Client {
+	c.http.Timeout = t
+	return c
+}
+
+func (c Client) WithHTTPTransport(t http.RoundTripper) Client {
+	c.http.Transport = t
 	return c
 }
 
 func (c *Client) Auth(code string, ttl time.Duration) (*TokenResponse, error) {
-	// test cert
-	// if c.AESCert == nil {
-	// 	return nil, errors.New("missing cert")
-	// }
+	return c.AuthContext(context.Background(), code, ttl)
+}
 
+func (c *Client) AuthContext(ctx context.Context, code string, ttl time.Duration) (*TokenResponse, error) {
 	now := time.Now()
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
 		"iss": c.teamID,
@@ -65,18 +74,21 @@ func (c *Client) Auth(code string, ttl time.Duration) (*TokenResponse, error) {
 		"aud": c.audience,
 		"sub": c.clientID,
 	})
-	token.Header = map[string]interface{}{"kid": c.keyID, "alg": "ES256"}
+	token.Header["kid"] = c.keyID
 
-	secret, _ := token.SignedString(c.keyData)
+	secret, err := token.SignedString(c.keyData)
+	if err != nil {
+		return nil, errors.Wrap(err, "token signed string error")
+	}
 	v := ValidateTokenRequest{
-		ClientId:     c.clientID,
+		ClientID:     c.clientID,
 		ClientSecret: secret,
 		Code:         code,
 		GrantType:    "authorization_code",
 		RedirectURI:  c.redirectURL,
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.baseURL, bytes.NewReader(v.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL, strings.NewReader(v.Encode()))
 	if err != nil {
 		return nil, errors.Wrap(err, "cannot prepare request")
 	}
@@ -92,18 +104,18 @@ func (c *Client) Auth(code string, ttl time.Duration) (*TokenResponse, error) {
 
 	switch resp.StatusCode {
 	case http.StatusOK:
-		respJson := new(TokenResponse)
-		if err = json.NewDecoder(resp.Body).Decode(respJson); err != nil {
+		payload := new(TokenResponse)
+		if err = jsoniter.NewDecoder(resp.Body).Decode(payload); err != nil {
 			return nil, errors.Wrap(err, "cannot parse error response json")
 		}
-		return respJson, nil
+		return payload, nil
 
 	case http.StatusBadRequest:
-		respJson := new(ErrorResponse)
-		if err = json.NewDecoder(resp.Body).Decode(respJson); err != nil {
+		payload := new(ErrorResponse)
+		if err = jsoniter.NewDecoder(resp.Body).Decode(payload); err != nil {
 			return nil, errors.Wrap(err, "cannot parse error response json")
 		}
-		return nil, errors.Wrap(respJson, "auth error")
+		return nil, errors.Wrap(payload, "auth error")
 
 	default:
 		body, err := readResponseBodyText(resp)
