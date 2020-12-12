@@ -1,4 +1,4 @@
-package applesignin_test
+package key_test
 
 import (
 	"crypto/ecdsa"
@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	applesignin "github.com/albenik/apple-signin-go"
+	"github.com/albenik/apple-signin-go/key"
 )
 
 func TestParsePrivateKey(t *testing.T) {
@@ -19,10 +19,10 @@ n5/2YdbDaijlx2eIyIfkv7tre3GxgG8NILwvNCrg6L9Tm9JkVjsLucwXcQ+ezINf
 YJBJn/t2
 -----END PRIVATE KEY-----`
 
-	key, err := applesignin.ParsePrivateKey([]byte(raw))
+	k, err := key.ParsePrivateFromPEM([]byte(raw))
 	require.NoError(t, err)
-	assert.IsType(t, (*ecdsa.PrivateKey)(nil), key)
-	assert.NotNil(t, key)
+	assert.IsType(t, (*ecdsa.PrivateKey)(nil), k)
+	assert.NotNil(t, k)
 }
 
 func TestParsePrivateKey_InvalidKey(t *testing.T) {
@@ -33,9 +33,9 @@ func TestParsePrivateKey_InvalidKey(t *testing.T) {
 	}
 
 	for i, k := range keys {
-		t.Run("key#"+strconv.Itoa(i), func(key []byte) func(t *testing.T) {
+		t.Run("key#"+strconv.Itoa(i), func(kk []byte) func(t *testing.T) {
 			return func(t *testing.T) {
-				_, err := applesignin.ParsePrivateKey(key)
+				_, err := key.ParsePrivateFromPEM(kk)
 				assert.Error(t, err)
 			}
 		}(k))

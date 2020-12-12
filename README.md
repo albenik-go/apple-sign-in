@@ -3,5 +3,7 @@
 ## Manual auth check
 
 ```
-curl -v https://appleid.apple.com/auth/authorize?client_id=[CLIENT_ID]&response_type=code&scope=name%20email&response_mode=query&state=[STATE]&redirect_uri=[REDIRECT_URI]
+curl -v https://appleid.apple.com/auth/authorize?response_type=code&response_mode=query&scope=name%20email&client_id=[CLIENT_ID]&state=[STATE]&redirect_uri=[REDIRECT_URI]
 ```
+
+CLIENT_ID: 

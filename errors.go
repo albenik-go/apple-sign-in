@@ -1,18 +1,12 @@
 package applesignin
 
+// nolint:depguard
 import (
-	"fmt"
-
-	"github.com/pkg/errors"
+	"errors"
 )
 
-var ErrNoPemBlockFound = errors.New("no PEM block found")
-
-// ErrorResponse see https://developer.apple.com/documentation/sign_in_with_apple/errorresponse.
-type ErrorResponse struct {
-	Reason string `json:"error"`
-}
-
-func (r *ErrorResponse) Error() string {
-	return fmt.Sprintf("apple error response: %s", r.Reason)
-}
+var (
+	ErrSecretExpirationTimeTooFar = errors.New("exp is too far from now")
+	ErrNonceMismatch              = errors.New("nonce mismatch")
+	ErrNoSuitableJWK              = errors.New("no suitable JWK")
+)

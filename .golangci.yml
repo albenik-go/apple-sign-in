@@ -35,8 +35,8 @@ linters-settings:
     default-signifies-exhaustive: true
 
   funlen:
-    lines: 60
-    statements: 40
+    lines: 100
+    statements: 50
 
   gci:
     local-prefixes: github.com/albenik/apple-signin-go
@@ -169,6 +169,7 @@ linters:
     - godox
     - gomnd
     - lll
+    - maligned
     - nlreturn
     - paralleltest
     - whitespace
