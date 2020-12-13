@@ -76,16 +76,18 @@ func (h *handler) callback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.appl.ValidateCode(r.FormValue("code"), nonce, applesignin.MaxExp)
+	fmt.Println(">>>", r.Form)
+
+	result, err := h.appl.ValidateCode(r.FormValue("code"), nonce, applesignin.MaxExpiration)
 	h.printResult(w, result, err)
 }
 
 func (h *handler) validate(w http.ResponseWriter, r *http.Request) {
-	result, err := h.appl.ValidateRefreshToken(r.FormValue("token"), applesignin.MaxExp)
+	result, err := h.appl.ValidateRefreshToken(r.FormValue("token"), applesignin.MaxExpiration)
 	h.printResult(w, result, err)
 }
 
-func (h *handler) printResult(w io.Writer, result *applesignin.Token, err error) {
+func (h *handler) printResult(w io.Writer, result *applesignin.TokenResponse, err error) {
 	if err != nil {
 		if err = resultTemplate.Execute(w, err); err != nil {
 			panic(err)

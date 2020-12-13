@@ -15,9 +15,9 @@ type IDTokenClaims struct {
 	Aud            string      `json:"aud"`
 	Iat            int64       `json:"iat"`
 	Exp            interface{} `json:"exp"`
-	Nonce          string      `json:"nonce"`
+	Nonce          string      `json:"nonce,omitempty"`
 	NonceSupported bool        `json:"nonce_supported"`
-	AuthTime       int64       `json:"auth_time"`
+	AuthTime       int64       `json:"auth_time,omitempty"`
 	AtHash         string      `json:"at_hash"`
 	Email          string      `json:"email"`
 	EmailVerified  FlexBool    `json:"email_verified"`   // apple returns as string "true"

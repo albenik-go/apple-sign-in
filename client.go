@@ -23,7 +23,7 @@ const (
 	audience  = baseURL
 	userAgent = "apple-signin-client-go/1.0"
 
-	MaxExp = 15777000 * time.Second // half a year
+	MaxExpiration = 15777000 * time.Second // half a year
 
 	ResponseModeQuery = "query"
 	ResponseModePost  = "form_post"
@@ -85,14 +85,14 @@ func (c *Client) AuthURL(mode string, scopes []string, state, nonce string) stri
 	return authURL + "?" + q.Encode()
 }
 
-func (c *Client) ValidateCode(code, nonce string, exp time.Duration) (*Token, error) {
+func (c *Client) ValidateCode(code, nonce string, exp time.Duration) (*TokenResponse, error) {
 	return c.ValidateCodeContext(context.Background(), code, nonce, exp)
 }
 
-func (c *Client) ValidateCodeContext(ctx context.Context, code, nonce string, exp time.Duration) (*Token, error) {
+func (c *Client) ValidateCodeContext(ctx context.Context, code, nonce string, exp time.Duration) (*TokenResponse, error) {
 	const errmsg = "authorization code validation error"
 
-	token, err := c.doRequest(ctx, &validateTokenRequest{
+	res, err := c.doRequest(ctx, &validateTokenRequest{
 		apiRequest: apiRequest{
 			ClientID:  c.clientID,
 			GrantType: "authorization_code",
@@ -104,21 +104,18 @@ func (c *Client) ValidateCodeContext(ctx context.Context, code, nonce string, ex
 		return nil, errors.Wrap(err, errmsg)
 	}
 
-	if token.IDToken != nil {
-		claims, ok := token.IDToken.Claims.(*IDTokenClaims)
-		if ok && claims.NonceSupported && claims.Nonce != nonce {
-			return nil, errors.Wrap(ErrNonceMismatch, errmsg)
-		}
+	if res.IDToken != nil && res.IDToken.NonceSupported && res.IDToken.Nonce != nonce {
+		return nil, errors.Wrap(ErrNonceMismatch, errmsg)
 	}
 
-	return token, nil
+	return res, nil
 }
 
-func (c *Client) ValidateRefreshToken(token string, exp time.Duration) (*Token, error) {
+func (c *Client) ValidateRefreshToken(token string, exp time.Duration) (*TokenResponse, error) {
 	return c.ValidateRefreshTokenContext(context.Background(), token, exp)
 }
 
-func (c *Client) ValidateRefreshTokenContext(ctx context.Context, token string, exp time.Duration) (*Token, error) {
+func (c *Client) ValidateRefreshTokenContext(ctx context.Context, token string, exp time.Duration) (*TokenResponse, error) {
 	token2, err := c.doRequest(ctx, &refreshTokenRequest{
 		apiRequest: apiRequest{
 			ClientID:  c.clientID,
@@ -133,12 +130,13 @@ func (c *Client) ValidateRefreshTokenContext(ctx context.Context, token string, 
 	return token2, nil
 }
 
-func (c *Client) ParseIDToken(token string) (*jwt.Token, error) {
+func (c *Client) ParseIDToken(token string) (*IDTokenClaims, error) {
 	return c.ParseIDTokenContext(context.Background(), token)
 }
 
-func (c *Client) ParseIDTokenContext(ctx context.Context, token string) (*jwt.Token, error) {
-	t, err := c.jwtparser.ParseWithClaims(token, &IDTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+func (c *Client) ParseIDTokenContext(ctx context.Context, token string) (*IDTokenClaims, error) {
+	claims := new(IDTokenClaims)
+	if _, err := c.jwtparser.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 		keys, err := c.jwk.FetchKeysContext(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "cannot load apple public keys")
@@ -161,15 +159,14 @@ func (c *Client) ParseIDTokenContext(ctx context.Context, token string) (*jwt.To
 		}
 
 		return nil, ErrNoSuitableJWK
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, errors.Wrap(err, "ID token parse error")
 	}
-	return t, nil
+	return claims, nil
 }
 
-func (c *Client) doRequest(ctx context.Context, req request, exp time.Duration) (*Token, error) {
-	if exp > MaxExp {
+func (c *Client) doRequest(ctx context.Context, req request, exp time.Duration) (*TokenResponse, error) {
+	if exp > MaxExpiration {
 		return nil, errors.Wrap(ErrSecretExpirationTimeTooFar, "cannot retrieve token")
 	}
 
@@ -205,17 +202,17 @@ func (c *Client) doRequest(ctx context.Context, req request, exp time.Duration) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
-		var t tokenResponse
+		var t tokenResponseRaw
 		if err = jsoniter.NewDecoder(resp.Body).Decode(&t); err != nil {
 			return nil, errors.Wrap(err, "cannot parse error response json")
 		}
 
-		var id *jwt.Token
+		var id *IDTokenClaims
 		if id, err = c.ParseIDTokenContext(ctx, t.IDToken); err != nil {
 			return nil, err
 		}
 
-		return &Token{
+		return &TokenResponse{
 			ExpiresIn:    t.ExpiresIn,
 			IDToken:      id,
 			AccessToken:  t.AccessToken,
