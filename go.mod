@@ -1,4 +1,4 @@
-module github.com/albenik/apple-signin-go
+module github.com/albenik/go-apple-sign-in
 
 go 1.15
 

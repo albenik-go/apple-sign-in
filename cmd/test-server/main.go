@@ -9,8 +9,8 @@ import (
 	"github.com/dgrijalva/jwt-go/v4"
 	jsoniter "github.com/json-iterator/go"
 
-	applesignin "github.com/albenik/apple-signin-go"
-	signinkey "github.com/albenik/apple-signin-go/key"
+	applesignin "github.com/albenik/go-apple-sign-in"
+	signinkey "github.com/albenik/go-apple-sign-in/key"
 )
 
 const (

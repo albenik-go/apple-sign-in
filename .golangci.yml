@@ -39,7 +39,7 @@ linters-settings:
     statements: 50
 
   gci:
-    local-prefixes: github.com/albenik/apple-signin-go
+    local-prefixes: github.com/albenik/go-apple-sign-in
 
   gocognit:
     # minimal code complexity to report, 30 by default (but we recommend 10-20)
