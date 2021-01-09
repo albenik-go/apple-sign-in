@@ -5,7 +5,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go/v4"
 
-	"github.com/albenik/go-apple-sign-in/jwkproxy"
+	"github.com/albenik-go/apple-sign-in/jwkproxy"
 )
 
 func WithBaseURL(u string) func(*Client) {

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/albenik/go-apple-sign-in/key"
+	"github.com/albenik-go/apple-sign-in/key"
 )
 
 func TestParsePrivateKey(t *testing.T) {

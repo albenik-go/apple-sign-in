@@ -13,7 +13,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/pkg/errors"
 
-	"github.com/albenik/go-apple-sign-in/jwkproxy"
+	"github.com/albenik-go/apple-sign-in/jwkproxy"
 )
 
 const (
