@@ -222,7 +222,7 @@ func (c *Client) doRequest(ctx context.Context, req request, exp time.Duration) 
 	}
 
 	if resp.StatusCode == http.StatusBadRequest {
-		payload := new(errorResponse)
+		payload := new(ErrorResponse)
 		if err = jsoniter.NewDecoder(resp.Body).Decode(payload); err != nil {
 			return nil, errors.Wrap(err, "cannot parse error response json")
 		}

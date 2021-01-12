@@ -21,11 +21,20 @@ type TokenResponse struct {
 	TokenType    string         `json:"token_type"`
 }
 
-// errorResponse see https://developer.apple.com/documentation/sign_in_with_apple/errorresponse.
-type errorResponse struct {
+const (
+	ReasonInvalidRequest       = "invalid_request"
+	ReasonInvalidClient        = "invalid_client"
+	ReasonInvalidGrant         = "invalid_grant"
+	ReasonUnauthorizedClient   = "unauthorized_client"
+	ReasonUnsupportedGrantType = "unsupported_grant_type"
+	ReasonInvalidScope         = "invalid_scope"
+)
+
+// ErrorResponse see https://developer.apple.com/documentation/sign_in_with_apple/errorresponse.
+type ErrorResponse struct {
 	Reason string `json:"error"`
 }
 
-func (r *errorResponse) Error() string {
+func (r *ErrorResponse) Error() string {
 	return fmt.Sprintf("apple error response: %s", r.Reason)
 }

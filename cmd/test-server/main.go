@@ -40,6 +40,7 @@ func main() {
 	h := handler{appl: appl}
 	http.HandleFunc("/", h.root)
 	http.HandleFunc("/callback", h.callback)
+	http.HandleFunc("/echo", h.callbackEcho)
 	http.HandleFunc("/validate", h.validate)
 
 	if err := http.ListenAndServe(*listen, nil); err != nil {
@@ -80,6 +81,31 @@ func (h *handler) callback(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.appl.ValidateCode(r.FormValue("code"), nonce, applesignin.MaxExpiration)
 	h.printResult(w, result, err)
+}
+
+func (h *handler) callbackEcho(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet, http.MethodPost:
+		if err := r.ParseForm(); err != nil {
+			panic(err)
+		}
+	default:
+		s := http.StatusBadRequest
+		http.Error(w, http.StatusText(s), s)
+		return
+	}
+
+	if s := r.FormValue("state"); s != state {
+		http.Error(w, fmt.Sprintf("Invalid state %q", s), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
+
+	for k, v := range r.Form {
+		fmt.Fprintln(w, k, "=", v)
+	}
+
 }
 
 func (h *handler) validate(w http.ResponseWriter, r *http.Request) {
