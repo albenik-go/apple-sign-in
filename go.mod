@@ -6,8 +6,8 @@ require (
 	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1
 	github.com/json-iterator/go v1.1.10
 	github.com/kr/text v0.2.0 // indirect
-	github.com/lestrrat-go/jwx v1.0.6
-	github.com/lestrrat-go/pdebug v0.0.0-20210108035039-f12957f3b23f // indirect
+	github.com/lestrrat-go/jwx v1.0.7
+	github.com/lestrrat-go/pdebug/v3 v3.0.0-20210111095411-35b07dbf089b // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1

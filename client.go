@@ -104,7 +104,11 @@ func (c *Client) ValidateCodeContext(ctx context.Context, code, nonce string, ex
 		return nil, errors.Wrap(err, errmsg)
 	}
 
-	if res.IDToken != nil && res.IDToken.NonceSupported && res.IDToken.Nonce != nonce {
+	if res.IDToken == nil { // not impossible by docs, but all possible in real life
+		return nil, errors.Wrap(ErrIDTokenMissing, errmsg)
+	}
+
+	if res.IDToken.NonceSupported && res.IDToken.Nonce != nonce {
 		return nil, errors.Wrap(ErrNonceMismatch, errmsg)
 	}
 
