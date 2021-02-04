@@ -14,7 +14,7 @@ type InMemory struct {
 	loader *Loader
 	ttl    time.Duration
 	errTTL time.Duration
-	set    *jwk.Set
+	set    jwk.Set
 	expire time.Time
 }
 
@@ -44,11 +44,11 @@ func (m *InMemory) RefreshContext(ctx context.Context) error {
 	return nil
 }
 
-func (m *InMemory) FetchKeys() (*jwk.Set, error) {
+func (m *InMemory) FetchKeys() (jwk.Set, error) {
 	return m.FetchKeysContext(context.Background())
 }
 
-func (m *InMemory) FetchKeysContext(ctx context.Context) (*jwk.Set, error) {
+func (m *InMemory) FetchKeysContext(ctx context.Context) (jwk.Set, error) {
 	if time.Now().After(m.expire) {
 		if err := m.RefreshContext(ctx); err != nil && m.set == nil {
 			return nil, errors.Wrap(err, "cannot fetch keys")

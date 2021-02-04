@@ -27,6 +27,6 @@ func NewLoader(opts ...func(*Loader)) *Loader {
 	return l
 }
 
-func (l *Loader) FetchContext(ctx context.Context) (*jwk.Set, error) {
-	return jwk.FetchHTTPWithContext(ctx, l.fetchURL, jwk.WithHTTPClient(l.http))
+func (l *Loader) FetchContext(ctx context.Context) (jwk.Set, error) {
+	return jwk.Fetch(ctx, l.fetchURL, jwk.WithHTTPClient(l.http))
 }
