@@ -19,7 +19,7 @@ const (
 )
 
 func main() {
-	listen := flag.String("", ":8080", "Listen address")
+	listen := flag.String("addr", ":8080", "Listen address")
 	audience := flag.String("aud", "", "Audience")
 	teamID := flag.String("team", "", "Team ID")
 	clientID := flag.String("client", "", "Client ID")
@@ -53,7 +53,10 @@ type handler struct {
 }
 
 func (h *handler) root(w http.ResponseWriter, _ *http.Request) {
-	u := h.appl.AuthURL(applesignin.ResponseModePost, []string{applesignin.ScopeEmail, applesignin.ScopeName}, state, nonce)
+	u := h.appl.AuthURL(applesignin.ResponseModePost, []string{
+		applesignin.ScopeEmail,
+		applesignin.ScopeName,
+	}, state, nonce)
 
 	if err := rootTemplate.Execute(w, u); err != nil {
 		panic(err)
@@ -69,7 +72,7 @@ func (h *handler) callback(w http.ResponseWriter, r *http.Request) {
 	default:
 		s := http.StatusBadRequest
 		http.Error(w, http.StatusText(s), s)
-		return
+		return //nolint:wsl
 	}
 
 	if s := r.FormValue("state"); s != state {
@@ -92,7 +95,7 @@ func (h *handler) callbackEcho(w http.ResponseWriter, r *http.Request) {
 	default:
 		s := http.StatusBadRequest
 		http.Error(w, http.StatusText(s), s)
-		return
+		return //nolint:wsl
 	}
 
 	if s := r.FormValue("state"); s != state {
@@ -105,7 +108,6 @@ func (h *handler) callbackEcho(w http.ResponseWriter, r *http.Request) {
 	for k, v := range r.Form {
 		fmt.Fprintln(w, k, "=", v)
 	}
-
 }
 
 func (h *handler) validate(w http.ResponseWriter, r *http.Request) {
@@ -118,14 +120,15 @@ func (h *handler) printResult(w io.Writer, result *applesignin.TokenResponse, er
 		if err = resultTemplate.Execute(w, err); err != nil {
 			panic(err)
 		}
-		return
+		return //nolint:wsl
 	}
 
 	json, err := jsoniter.MarshalIndent(result, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	if err := resultTemplate.Execute(w, string(json)); err != nil {
+
+	if err = resultTemplate.Execute(w, string(json)); err != nil {
 		panic(err)
 	}
 }

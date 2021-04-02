@@ -61,6 +61,7 @@ func (r *validateTokenRequest) Encode() string {
 	if r.RedirectURI != "" {
 		v.Set("redirect_uri", r.RedirectURI)
 	}
+
 	return v.Encode()
 }
 
@@ -74,11 +75,10 @@ type refreshTokenRequest struct {
 }
 
 func (r *refreshTokenRequest) Encode() string {
-	v := url.Values{
+	return url.Values{
 		"client_id":     []string{r.ClientID},
 		"client_secret": []string{r.ClientSecret},
 		"grant_type":    []string{r.GrantType},
 		"refresh_token": []string{r.RefreshToken},
-	}
-	return v.Encode()
+	}.Encode()
 }

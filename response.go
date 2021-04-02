@@ -4,6 +4,7 @@ import (
 	"fmt"
 )
 
+//nolint:lll
 // tokenResponseRaw see https://developer.apple.com/documentation/sign_in_with_apple/tokenresponse.
 type tokenResponseRaw struct {
 	AccessToken  string `json:"access_token"`  // (Reserved for future use) A token used to access allowed data. Currently, no data set has been defined for access.

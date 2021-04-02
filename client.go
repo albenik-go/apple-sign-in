@@ -82,6 +82,7 @@ func (c *Client) AuthURL(mode string, scopes []string, state, nonce string) stri
 		"state":         []string{state},
 		"nonce":         []string{nonce},
 	}
+
 	return authURL + "?" + q.Encode()
 }
 
@@ -89,7 +90,7 @@ func (c *Client) ValidateCode(code, nonce string, exp time.Duration) (*TokenResp
 	return c.ValidateCodeContext(context.Background(), code, nonce, exp)
 }
 
-func (c *Client) ValidateCodeContext(ctx context.Context, code, nonce string, exp time.Duration) (*TokenResponse, error) {
+func (c *Client) ValidateCodeContext(ctx context.Context, code, nonce string, exp time.Duration) (*TokenResponse, error) { //nolint:lll
 	const errmsg = "authorization code validation error"
 
 	res, err := c.doRequest(ctx, &validateTokenRequest{
@@ -119,7 +120,7 @@ func (c *Client) ValidateRefreshToken(token string, exp time.Duration) (*TokenRe
 	return c.ValidateRefreshTokenContext(context.Background(), token, exp)
 }
 
-func (c *Client) ValidateRefreshTokenContext(ctx context.Context, token string, exp time.Duration) (*TokenResponse, error) {
+func (c *Client) ValidateRefreshTokenContext(ctx context.Context, token string, exp time.Duration) (*TokenResponse, error) { //nolint:lll
 	token2, err := c.doRequest(ctx, &refreshTokenRequest{
 		apiRequest: apiRequest{
 			ClientID:  c.clientID,
@@ -146,7 +147,7 @@ func (c *Client) ParseIDTokenContext(ctx context.Context, token string) (*IDToke
 			return nil, errors.Wrap(err, "cannot load apple public keys")
 		}
 
-		if kid, ok := token.Header["kid"]; ok { // nolint:nestif
+		if kid, ok := token.Header["kid"]; ok {
 			if alg, ok := token.Header["alg"]; ok {
 				for iter := keys.Iterate(ctx); iter.Next(ctx); {
 					pair := iter.Pair()
@@ -166,6 +167,7 @@ func (c *Client) ParseIDTokenContext(ctx context.Context, token string) (*IDToke
 	}); err != nil {
 		return nil, errors.Wrap(err, "ID token parse error")
 	}
+
 	return claims, nil
 }
 
@@ -188,7 +190,7 @@ func (c *Client) doRequest(ctx context.Context, req request, exp time.Duration) 
 	if err != nil {
 		return nil, errors.Wrap(err, "token signed string error")
 	}
-	req.SetSecret(secret)
+	req.SetSecret(secret) // nolint:wsl
 
 	httpreq, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL, strings.NewReader(req.Encode()))
 	if err != nil {
@@ -212,7 +214,7 @@ func (c *Client) doRequest(ctx context.Context, req request, exp time.Duration) 
 		}
 
 		var id *IDTokenClaims
-		if id, err = c.ParseIDTokenContext(ctx, t.IDToken); err != nil {
+		if id, err = c.ParseIDTokenContext(ctx, t.IDToken); err != nil { //nolint:wsl
 			return nil, err
 		}
 
@@ -230,12 +232,12 @@ func (c *Client) doRequest(ctx context.Context, req request, exp time.Duration) 
 		if err = jsoniter.NewDecoder(resp.Body).Decode(payload); err != nil {
 			return nil, errors.Wrap(err, "cannot parse error response json")
 		}
-		return nil, errors.Wrap(payload, "auth error")
+		return nil, errors.Wrap(payload, "auth error") //nolint:wsl
 	}
 
 	body, err := readResponseBodyText(resp)
 	if err != nil {
 		body = fmt.Sprintf("body read error: %s", err)
 	}
-	return nil, errors.Errorf("unexpected http response code %d: %q", resp.StatusCode, body)
+	return nil, errors.Errorf("unexpected http response code %d: %q", resp.StatusCode, body) //nolint:wsl
 }

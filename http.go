@@ -17,6 +17,7 @@ func readResponseBody(r *http.Response) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Errorf("cannot read response body")
 	}
+
 	return buf, nil
 }
 
@@ -25,5 +26,6 @@ func readResponseBodyText(r *http.Response) (s string, err error) {
 	if b, err = readResponseBody(r); err == nil {
 		s = string(b)
 	}
+
 	return
 }

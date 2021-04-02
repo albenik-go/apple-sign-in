@@ -41,6 +41,7 @@ func (m *InMemory) RefreshContext(ctx context.Context) error {
 
 	m.expire = time.Now().Add(m.ttl)
 	m.set = set
+
 	return nil
 }
 
@@ -54,5 +55,6 @@ func (m *InMemory) FetchKeysContext(ctx context.Context) (jwk.Set, error) {
 			return nil, errors.Wrap(err, "cannot fetch keys")
 		}
 	}
+
 	return m.set, nil
 }

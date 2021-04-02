@@ -2,7 +2,7 @@ package key_test
 
 import (
 	"crypto/ecdsa"
-	"strconv"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -33,11 +33,9 @@ func TestParsePrivateKey_InvalidKey(t *testing.T) {
 	}
 
 	for i, k := range keys {
-		t.Run("key#"+strconv.Itoa(i), func(kk []byte) func(t *testing.T) {
-			return func(t *testing.T) {
-				_, err := key.ParsePrivateFromPEM(kk)
-				assert.Error(t, err)
-			}
-		}(k))
+		t.Run(fmt.Sprintf("key-%d", i), func(t *testing.T) {
+			_, err := key.ParsePrivateFromPEM(k)
+			assert.Error(t, err)
+		})
 	}
 }

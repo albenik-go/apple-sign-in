@@ -15,6 +15,7 @@ func ParsePrivateFromPEM(b []byte) (interface{}, error) {
 	if block == nil {
 		return nil, ErrPEMBlockMissing
 	}
+
 	return x509.ParsePKCS8PrivateKey(block.Bytes)
 }
 
@@ -23,5 +24,6 @@ func ReadPrivateFromPEMFile(file string) (interface{}, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "key file read error")
 	}
+
 	return ParsePrivateFromPEM(data)
 }

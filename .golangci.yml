@@ -163,53 +163,43 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - exhaustivestruct
-    - gochecknoglobals
+    - cyclop
     - gocognit
-    - godox
-    - gomnd
-    - lll
-    - maligned
+    - exhaustivestruct
+    - interfacer # The linter 'interfacer' is deprecated (since v1.38.0) due to: The repository of the linter has been archived by the owner.
+    - maligned # The linter 'maligned' is deprecated (since v1.38.0) due to: The repository of the linter has been archived by the owner.  Replaced by govet 'fieldalignment'.
     - nlreturn
-    - paralleltest
-    - whitespace
+    - gochecknoglobals
+    - scopelint # The linter 'scopelint' is deprecated (since v1.39.0) due to: The repository of the linter has been deprecated by the owner.  Replaced by exportloopref.
     - wrapcheck
-    - wsl
   fast: false
 
 issues:
-  exclude:
-    - "G401"
-    - "G501"
-    - "G505"
-
   exclude-rules:
+    - path: cmd/test-server/.+\.go
+      linters:
+        - forbidigo
+
     - path: _test\.go
       linters:
-        - gocyclo
         - errcheck
         - dupl
+        - gocyclo
         - gosec
+        - paralleltest
 
-    # Exclude known linters from partially hard-vendored code,
-    # which is impossible to exclude via "nolint" comments.
     - path: internal/hmac/
       text: "weak cryptographic primitive"
       linters:
         - gosec
 
-    # Exclude some staticcheck messages
-    - text: "SA9003:"
+    - text: "fieldalignment:"
       linters:
-        - staticcheck
+        - govet
 
     - source: "^//go:generate "
       linters:
         - lll
-
-    - source: '_ "github.com/jackc/pgx/v4/stdlib"'
-      linters:
-        - golint
 
 severity:
   default-severity: warning
